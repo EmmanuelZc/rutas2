@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Rutas | Panel de Administración</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@6.9.96/css/materialdesignicons.min.css"
+    />
+    <style>
+      :root {
+        --sidebar-width: 250px;
+        --primary-color: #3498db;
+        --secondary-color: #2c3e50;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+      }
+
+      .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 20px 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        z-index: 1000;
+      }
+
+      .sidebar-header {
+        padding: 0 20px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-menu {
+        padding: 20px 0;
+      }
+
+      .sidebar-menu a {
+        display: block;
+        padding: 12px 20px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s;
+        border-left: 3px solid transparent;
+      }
+
+      .sidebar-menu a:hover,
+      .sidebar-menu a.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-left: 3px solid var(--primary-color);
+      }
+
+      .sidebar-menu i {
+        margin-right: 10px;
+        font-size: 1.1rem;
+      }
+
+      .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+        min-height: 100vh;
+      }
+
+      .card-admin {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin-bottom: 20px;
+      }
+
+      .card-admin:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .card-admin .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .welcome-header {
+        background: linear-gradient(135deg, var(--primary-color), #5dade2);
+        color: white;
+        padding: 30px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 0;
+          overflow: hidden;
+        }
+
+        .sidebar.active {
+          width: var(--sidebar-width);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+
+        .toggle-sidebar {
+          display: block !important;
+        }
+      }
+
+      .toggle-sidebar {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1100;
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+      }
+
+      :root {
+        --sidebar-width: 250px;
+        --primary-color: #3498db;
+        --secondary-color: #2c3e50;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f5f7fa;
+      }
+
+      .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background-color: var(--secondary-color);
+        color: white;
+        padding: 20px 0;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s;
+        z-index: 1000;
+      }
+
+      .main-content {
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+        min-height: 100vh;
+      }
+
+      .card-admin {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin-bottom: 20px;
+      }
+
+      .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .table thead {
+        background-color: var(--primary-color);
+        color: white;
+      }
+
+      .badge-route {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-weight: 500;
+      }
+
+      .route-map {
+        height: 300px;
+        background-color: #e9ecef;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        margin-bottom: 20px;
+      }
+
+      .route-stop {
+        display: flex;
+        align-items: center;
+        padding: 8px 15px;
+        border-left: 3px solid var(--primary-color);
+        margin-bottom: 5px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+      }
+
+      .route-stop .stop-order {
+        font-weight: bold;
+        margin-right: 15px;
+        color: var(--primary-color);
+      }
+
+      .action-btns .btn {
+        padding: 5px 10px;
+        margin-right: 5px;
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 0;
+          overflow: hidden;
+        }
+
+        .sidebar.active {
+          width: var(--sidebar-width);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+
+        .toggle-sidebar {
+          display: block !important;
+        }
+      }
+
+      .toggle-sidebar {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1100;
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+      }
+
+      /* Estilos adicionales para el modal mejorado */
+      #addRouteModal .modal-content {
+        border-radius: 0.75rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+      }
+
+      #addRouteModal .modal-header {
+        border-radius: 0.75rem 0.75rem 0 0;
+        padding: 1.25rem 1.5rem;
+      }
+
+      #addRouteModal .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+      }
+
+      #addRouteModal .form-control,
+      #addRouteModal .form-select {
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid #ced4da;
+        transition: all 0.2s;
+      }
+
+      #addRouteModal .form-control:focus,
+      #addRouteModal .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+      }
+
+      #addRouteModal .invalid-feedback {
+        font-size: 0.85rem;
+      }
+
+      #addRouteModal .border-primary {
+        opacity: 0.3;
+      }
+
+      #addRouteModal .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+      }
+
+      #addRouteModal .btn-primary {
+        padding: 0.5rem 1.5rem;
+      }
+
+      /* Estilo para campos requeridos */
+      .form-label.required::after {
+        content: " *";
+        color: #dc3545;
+      }
+    </style>
+  </head>
+  <body>
+    <button class="toggle-sidebar" id="toggleSidebar">
+      <i class="bi bi-list"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h4 class="text-center">Panel de Control</h4>
+      </div>
+      <div class="sidebar-menu">
+        <a href="" onclick="checkUserRole()">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="" class="active" onclick="gestionarRutas(event)">
+          <i class="bi bi-bus-front"></i> Gestionar Rutas
+        </a>
+        <a href="" onclick="gestionarParadas(event)">
+          <i class="bi bi-signpost"></i> Gestionar Paradas
+        </a>
+        <a href="usuarios.html">
+          <i class="bi bi-people"></i> Gestionar Usuarios
+        </a>
+
+        <a href="#" onclick="logout(event)">
+          <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-bus-front me-2"></i> Gestión de Rutas</h2>
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#addRouteModal"
+        >
+          <i class="bi bi-plus-lg me-2"></i>Agregar Ruta
+        </button>
+      </div>
+
+      <div class="card-admin card mb-4 p-3">
+        <div class="row">
+          <div class="col-md-4">
+            <label class="form-label">Buscar ruta</label>
+            <input
+              type="text"
+              class="form-control"
+              id="filtroNombre"
+              placeholder="Nombre o número de ruta"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="filtroEstado">
+              <option value="Todas" selected>Todas</option>
+              <option value="Activa">Activa</option>
+              <option value="Inactiva">Inactiva</option>
+              <option value="En mantenimiento">En mantenimiento</option>
+            </select>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" id="btnFiltrar">
+              <i class="bi bi-funnel me-2"></i>Filtrar
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- Mapa de Ruta (placeholder) -->
+      <div class="route-map">
+        <div class="text-center">
+          <i class="bi bi-map" style="font-size: 3rem"></i>
+          <p class="mt-2">Mapa de la ruta seleccionada</p>
+        </div>
+      </div>
+
+      <!-- Lista de Rutas -->
+      <!-- Lista de Rutas -->
+      <div class="card-admin card p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="tablaRutas">
+            <thead>
+              <tr>
+                <th width="80">ID</th>
+                <th>Nombre</th>
+                <th>Horario</th>
+                <th>Estado</th>
+                <th width="150">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Las filas de la tabla se agregarán dinámicamente aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Agregar Ruta -->
+    <!-- Modal Agregar Ruta Turística -->
+    <!-- Modal Agregar Ruta -->
+    <div
+      class="modal fade"
+      id="addRouteModal"
+      tabindex="-1"
+      aria-labelledby="addRouteModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fs-5" id="addRouteModalLabel">
+              <i class="bi bi-bus-front me-2"></i>Agregar Nueva Ruta
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body p-4">
+            <form id="formAgregarRuta" class="needs-validation" novalidate>
+              <!-- Información Básica -->
+              <!-- Información Básica -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-info-circle me-2"></i>Información Básica
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="nombreRuta" class="form-label required">
+                      <i class="bi bi-signpost me-1"></i>Nombre de Ruta
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="nombreRuta"
+                      name="nombreRuta"
+                      placeholder="Ej: Ruta Centro-Comercial"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Por favor ingrese el nombre de la ruta.
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="descripcionRuta" class="form-label">
+                      <i class="bi bi-text-paragraph me-1"></i>Descripción
+                    </label>
+                    <textarea
+                      class="form-control"
+                      id="descripcionRuta"
+                      name="descripcionRuta"
+                      rows="1"
+                      placeholder="Ej: Recorre el centro hasta la zona comercial"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Estado de la ruta -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-info-circle me-2"></i>Estado de la Ruta
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="estadoRuta" class="form-label required">
+                      <i class="bi bi-toggle-on me-1"></i>Estado
+                    </label>
+                    <select
+                      class="form-select"
+                      id="estadoRuta"
+                      name="estadoRuta"
+                      required
+                    >
+                      <option value="Activa">Activa</option>
+                      <option value="Inactiva">Inactiva</option>
+                      <option value="En mantenimiento">En mantenimiento</option>
+                    </select>
+                    <div class="invalid-feedback">
+                      Por favor seleccione el estado de la ruta.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Duración -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-clock me-2"></i>Duración
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="duracionRuta" class="form-label required">
+                      <i class="bi bi-clock-history me-1"></i>Duración Estimada
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="duracionRuta"
+                      name="duracion_estimada"
+                      placeholder="Ej: 2 horas"
+                      required
+                    />
+                    <div class="invalid-feedback">
+                      Por favor ingrese la duración estimada de la ruta.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Sección Origen -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-geo-alt me-2"></i>Origen
+                </h6>
+                <div class="row g-3">
+                  <!-- Punto Conocido Origen -->
+                  <div class="col-md-6">
+                    <label
+                      for="puntoConocidoOrigen"
+                      class="form-label required"
+                    >
+                      <i class="bi bi-pin me-1"></i>Tipo de Punto de Origen
+                    </label>
+                    <select
+                      class="form-select"
+                      id="puntoConocidoOrigen"
+                      name="puntoConocidoOrigen"
+                      onchange="mostrarCamposOrigen()"
+                      required
+                    >
+                      <option value="" disabled selected>
+                        Seleccione tipo
+                      </option>
+                      <option value="Domicilio">Domicilio</option>
+                      <option value="Carretera">Carretera</option>
+                      <option value="Lugar">Lugar</option>
+                    </select>
+                  </div>
+
+                  <!-- Coordenadas Origen -->
+                  <div class="col-md-6">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <label for="latitudOrigen" class="form-label required">
+                          <i class="bi bi-globe me-1"></i>Latitud
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          class="form-control"
+                          id="latitudOrigen"
+                          name="latitudOrigen"
+                          placeholder="Ej: 19.432608"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label for="longitudOrigen" class="form-label required">
+                          <i class="bi bi-globe me-1"></i>Longitud
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          class="form-control"
+                          id="longitudOrigen"
+                          name="longitudOrigen"
+                          placeholder="Ej: -99.133209"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Campos Dinámicos Origen -->
+                  <div id="grupoDomicilioOrigen" class="row mt-2">
+                    <div class="col-md-4">
+                      <label for="calleOrigen" class="form-label required"
+                        >Calle</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="calleOrigen"
+                        name="calleOrigen"
+                        placeholder="Calle"
+                      />
+                    </div>
+                    <div class="col-md-2">
+                      <label for="numeroOrigen" class="form-label"
+                        >Número</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="numeroOrigen"
+                        name="numeroOrigen"
+                        placeholder="Núm"
+                      />
+                    </div>
+                    <div class="col-md-3">
+                      <label for="coloniaOrigen" class="form-label required"
+                        >Colonia</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="coloniaOrigen"
+                        name="coloniaOrigen"
+                        placeholder="Colonia"
+                      />
+                    </div>
+                    <div class="col-md-3">
+                      <label for="cpOrigen" class="form-label required"
+                        >C.P.</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="cpOrigen"
+                        name="cpOrigen"
+                        placeholder="Código Postal"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    id="grupoCarreteraOrigen"
+                    class="row mt-2"
+                    style="display: none"
+                  >
+                    <div class="col-md-6">
+                      <label for="carreteraOrigen" class="form-label required"
+                        >Carretera</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="carreteraOrigen"
+                        name="carreteraOrigen"
+                        placeholder="Nombre o Número"
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="kilometrosRuta" class="form-label required"
+                        >Kilómetro</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="kilometrosRuta"
+                        name="kmOrigen"
+                        placeholder="Kilómetro"
+                      />
+                    </div>
+                  </div>
+
+                  <div id="grupoLugarOrigen" class="mt-2" style="display: none">
+                    <label for="descripcionOrigen" class="form-label required"
+                      >Descripción del Lugar</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="descripcionOrigen"
+                      name="descripcionOrigen"
+                      placeholder="Ej: Parque Central, Museo, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sección Destino -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-geo-alt me-2"></i>Destino
+                </h6>
+                <div class="row g-3">
+                  <!-- Punto Conocido Destino -->
+                  <div class="col-md-6">
+                    <label
+                      for="puntoConocidoDestino"
+                      class="form-label required"
+                    >
+                      <i class="bi bi-pin me-1"></i>Tipo de Punto de Destino
+                    </label>
+                    <select
+                      class="form-select"
+                      id="puntoConocidoDestino"
+                      name="puntoConocidoDestino"
+                      onchange="mostrarCamposDestino()"
+                      required
+                    >
+                      <option value="" disabled selected>
+                        Seleccione tipo
+                      </option>
+                      <option value="Domicilio">Domicilio</option>
+                      <option value="Carretera">Carretera</option>
+                      <option value="Lugar">Lugar</option>
+                    </select>
+                  </div>
+
+                  <!-- Coordenadas Destino -->
+                  <div class="col-md-6">
+                    <div class="row">
+                      <div class="col-md-6">
+                        <label for="latitudDestino" class="form-label required">
+                          <i class="bi bi-globe me-1"></i>Latitud
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          class="form-control"
+                          id="latitudDestino"
+                          name="latitudDestino"
+                          placeholder="Ej: 19.432608"
+                          required
+                        />
+                      </div>
+                      <div class="col-md-6">
+                        <label
+                          for="longitudDestino"
+                          class="form-label required"
+                        >
+                          <i class="bi bi-globe me-1"></i>Longitud
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          class="form-control"
+                          id="longitudDestino"
+                          name="longitudDestino"
+                          placeholder="Ej: -99.133209"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Campos Dinámicos Destino -->
+                  <div id="grupoDomicilioDestino" class="row mt-2">
+                    <div class="col-md-4">
+                      <label for="calleDestino" class="form-label required"
+                        >Calle</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="calleDestino"
+                        name="calleDestino"
+                        placeholder="Calle"
+                      />
+                    </div>
+                    <div class="col-md-2">
+                      <label for="numeroDestino" class="form-label"
+                        >Número</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="numeroDestino"
+                        name="numeroDestino"
+                        placeholder="Núm"
+                      />
+                    </div>
+                    <div class="col-md-3">
+                      <label for="coloniaDestino" class="form-label required"
+                        >Colonia</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="coloniaDestino"
+                        name="coloniaDestino"
+                        placeholder="Colonia"
+                      />
+                    </div>
+                    <div class="col-md-3">
+                      <label for="cpDestino" class="form-label required"
+                        >C.P.</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="cpDestino"
+                        name="cpDestino"
+                        placeholder="Código Postal"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    id="grupoCarreteraDestino"
+                    class="row mt-2"
+                    style="display: none"
+                  >
+                    <div class="col-md-6">
+                      <label for="carreteraDestino" class="form-label required"
+                        >Carretera</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="carreteraDestino"
+                        name="carreteraDestino"
+                        placeholder="Nombre o Número"
+                      />
+                    </div>
+                    <div class="col-md-6">
+                      <label for="kmDestino" class="form-label required"
+                        >Kilómetro</label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="kmDestino"
+                        name="kmDestino"
+                        placeholder="Kilómetro"
+                      />
+                    </div>
+                  </div>
+
+                  <div
+                    id="grupoLugarDestino"
+                    class="mt-2"
+                    style="display: none"
+                  >
+                    <label for="descripcionDestino" class="form-label required"
+                      >Descripción del Lugar</label
+                    >
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="descripcionDestino"
+                      name="descripcionDestino"
+                      placeholder="Ej: Parque Central, Museo, etc."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles del Viaje -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-clock me-2"></i>Detalles del Viaje
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="horarioInicioRuta" class="form-label required">
+                      <i class="bi bi-clock-history me-1"></i>Horario de Inicio
+                    </label>
+                    <input
+                      type="time"
+                      class="form-control"
+                      id="horarioInicioRuta"
+                      name="horarioInicioRuta"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="horarioFinRuta" class="form-label required">
+                      <i class="bi bi-clock me-1"></i>Horario de Fin
+                    </label>
+                    <input
+                      type="time"
+                      class="form-control"
+                      id="horarioFinRuta"
+                      name="horarioFinRuta"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="kilometros" class="form-label required">
+                      <i class="bi bi-speedometer2 me-1"></i>Kilómetros
+                    </label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="kilometros"
+                      name="kilometros"
+                      placeholder="Ej: 150"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-6">
+                    <label for="tipoVehiculo" class="form-label required">
+                      <i class="bi bi-bus-front me-1"></i>Tipo de Vehículo
+                    </label>
+                    <select
+                      class="form-select"
+                      id="tipoVehiculo"
+                      name="tipoVehiculo"
+                      required
+                    >
+                      <option value="" disabled selected>
+                        Seleccione tipo
+                      </option>
+                      <option value="Camion">Camión</option>
+                      <option value="Microbus">Microbus</option>
+                      <option value="Automovil">Automóvil</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sección Licencia -->
+              <div class="mb-4">
+                <h6 class="text-primary mb-3 pb-2 border-bottom border-primary">
+                  <i class="bi bi-file-earmark-text me-2"></i>Licencia
+                </h6>
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label for="numeroAutorizacion" class="form-label required">
+                      <i class="bi bi-file-earmark-text me-1"></i>Número de
+                      Autorización
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="numeroAutorizacion"
+                      name="numeroAutorizacion"
+                      placeholder="Ej: 56899"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <label for="fechaInicioRuta" class="form-label required">
+                      <i class="bi bi-calendar-event me-1"></i>Fecha de Inicio
+                    </label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="fechaInicioRuta"
+                      name="fechaInicio"
+                      required
+                    />
+                  </div>
+                  <div class="col-md-3">
+                    <label for="fechaFinRuta" class="form-label required">
+                      <i class="bi bi-calendar-x me-1"></i>Fecha fin
+                    </label>
+                    <input
+                      type="date"
+                      class="form-control"
+                      id="fechaFinRuta"
+                      name="fechaCaducidad"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="modal-footer border-top-0 pt-0">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  <i class="bi bi-x-circle me-1"></i>Cancelar
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  id="guardarRutaBtn"
+                >
+                  <i class="bi bi-save me-1"></i>Guardar Ruta
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/login.js"></script>
+    <script src="/js/rutas.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

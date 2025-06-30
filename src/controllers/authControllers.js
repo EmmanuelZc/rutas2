@@ -6,7 +6,7 @@ import {
 import jwt from "jsonwebtoken";
 import path from "path";
 import { fileURLToPath } from "url";
-
+import { resolve } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -43,6 +43,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   const { email, password } = req.body;
 
+  // Validación básica
   if (!email || !password) {
     return res
       .status(400)
@@ -50,56 +51,85 @@ const login = async (req, res) => {
   }
 
   try {
+    // Verificar existencia del usuario y credenciales
     const user = await iniciarSesion(email, password);
+
+    if (!user) {
+      return res.status(401).json({ message: "Correo o contraseña inválidos" });
+    }
+
+    // Verificar que el usuario tenga rol asignado
+    if (!user.rol_id) {
+      return res.status(403).json({ message: "Usuario sin rol asignado" });
+    }
+
     const nombreRol = await obtenerRol(user.rol_id);
-    // Generar el token JWT con el ID del rol
+
+    if (!nombreRol) {
+      return res.status(403).json({ message: "Rol no válido" });
+    }
+
+    // Generar token JWT
     const token = jwt.sign(
       { id: user.id, role: nombreRol },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "secret", // fallback por si no está definido
       { expiresIn: "1h" }
     );
 
-    res.json({
+    // Enviar cookie segura
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 3600000, // 1 hora
+    });
+
+    // Respuesta final
+    res.status(200).json({
       message: "Login exitoso",
+      userId: user.id,
+      role: nombreRol,
       token,
     });
   } catch (error) {
-    console.error("Error en el login de usuario:", error);
-    res
-      .status(401)
-      .json({ message: "Correo electrónico o contraseña incorrectos" });
+    console.error("Error en el login:", error);
+    res.status(500).json({ message: "Error en el servidor durante el login" });
   }
 };
+
 const adminDashboard = (req, res) => {
-  const token = req.headers["authorization"];
+  const token = req.cookies.token;
 
   if (!token) {
     return res.status(403).json({ message: "Acceso no autorizado" });
   }
 
-  const tokenWithoutBearer = token.replace("Bearer ", "");
-
-  jwt.verify(
-    tokenWithoutBearer,
-    process.env.JWT_SECRET,
-    (err, decodedToken) => {
-      if (err) {
-        return res.status(403).json({ message: "Token inválido o expirado" });
-      }
-
-      if (decodedToken.role !== "Administrador") {
-        return res
-          .status(403)
-          .json({ message: "Acceso denegado. Solo administradores." });
-      }
-
-      res.sendFile(path.join(__dirname, "public", "admin-dashboard.html"));
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+    if (err) {
+      return res.status(403).json({ message: "Token inválido o expirado" });
     }
-  );
+
+    if (decodedToken.role !== "Administrador") {
+      return res
+        .status(403)
+        .json({ message: "Acceso denegado. Solo administradores." });
+    }
+
+    res.sendFile(resolve("public", "admin-dashboard.html"));
+  });
+};
+const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV != "production",
+    sameSite: "strict",
+  });
+  res.status(200).json({ message: "Sesión cerrada exitosamente" });
 };
 
 export default {
   register,
   login,
   adminDashboard,
+  logout,
 };

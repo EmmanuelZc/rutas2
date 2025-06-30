@@ -10,9 +10,20 @@ const router = express.Router();
 router.post("/registro", authControllers.register);
 router.post("/login", authControllers.login);
 router.get("/admin", authControllers.adminDashboard);
-
+router.get("/logout", authControllers.logout);
 router.get("/admin-dashboard", (req, res) => {
   res.sendFile(path.resolve("public", "admin-dashboard.html"));
+});
+router.get("/gestionarRutas", (req, res) => {
+  res.sendFile(path.resolve("public", "gestionar-rutas.html"));
+});
+
+router.get("/gestionarParadas", (req, res) => {
+  res.sendFile(path.resolve("public", "gestionar-paradas.html"));
+});
+
+router.get("/gestionarUsuarios", (req, res) => {
+  res.sendFile(path.resolve("public", "gestionar-usuarios.html"));
 });
 
 export default router;
