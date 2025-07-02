@@ -87,12 +87,18 @@ export const obtenerParadasController = async (req, res) => {
     });
   }
 };
-
-// Obtener una parada por ID
+// Obtener una parada por ID - Versión corregida
 export const obtenerParadaPorIdController = async (req, res) => {
   try {
     const { id } = req.params;
-    const parada = await UbicacionesModel.obtenerParadaPorId(id);
+
+    // Asegúrate de que el ID sea un número
+    const paradaId = parseInt(id);
+    if (isNaN(paradaId)) {
+      return res.status(400).json({ message: "ID de parada no válido" });
+    }
+
+    const parada = await UbicacionesModel.obtenerParadaPorId(paradaId);
 
     if (!parada) {
       return res.status(404).json({ message: "Parada no encontrada" });
@@ -222,6 +228,19 @@ export const eliminarParadaController = async (req, res) => {
     console.error("Error al eliminar la parada:", error);
     res.status(500).json({
       message: "Error al eliminar la parada",
+      error: error.message,
+    });
+  }
+};
+
+export const contarParadasController = async (req, res) => {
+  try {
+    const count = await UbicacionesModel.contarParadas();
+    res.status(200).json({ total: count });
+  } catch (error) {
+    console.error("Error al contar las paradas:", error);
+    res.status(500).json({
+      message: "Error al contar las paradas",
       error: error.message,
     });
   }

@@ -132,3 +132,7 @@ export const crearUbicacion = async ({
     throw error;
   }
 };
+export const contarParadas = async () => {
+  const { rows } = await pool.query("SELECT COUNT(*) AS total FROM paradas");
+  return parseInt(rows[0].total, 10);
+};

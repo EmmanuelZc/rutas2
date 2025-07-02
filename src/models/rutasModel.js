@@ -222,3 +222,8 @@ export const actualizarRutaYUbicaciones = async (rutaId, d) => {
 export const eliminarRuta = async (id) => {
   await pool.query("DELETE FROM rutas WHERE id = $1", [id]);
 };
+
+export const contarRutas = async () => {
+  const { rows } = await pool.query("SELECT COUNT(*) AS count FROM rutas");
+  return parseInt(rows[0].count, 10);
+};

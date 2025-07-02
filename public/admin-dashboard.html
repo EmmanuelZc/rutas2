@@ -143,6 +143,7 @@
     </button>
 
     <!-- Sidebar -->
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <h4 class="text-center">Panel de Control</h4>
@@ -151,15 +152,28 @@
         <a href="" onclick="checkUserRole()" class="active">
           <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="" onclick="gestionarRutas(event)">
-          <i class="bi bi-bus-front"></i> Gestionar Rutas
-        </a>
-        <a href="" onclick="gestionarParadas(event)">
-          <i class="bi bi-signpost"></i> Gestionar Paradas
-        </a>
-        <a href="#"> <i class="bi bi-people"></i> Gestionar Usuarios </a>
-        <a href="#" onclick="logout(event)">
-          <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+
+        <!-- Ajuste en los botones de gestionar rutas y paradas -->
+        <button
+          id="gestionarRutasBtn"
+          class="btn btn-outline-primary d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-bus-front me-2"></i> Gestionar Rutas
+        </button>
+
+        <button
+          id="gestionarParadasBtn"
+          class="btn btn-outline-primary d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-signpost me-2"></i> Gestionar Paradas
+        </button>
+
+        <a
+          href="#"
+          onclick="logout(event)"
+          class="btn btn-outline-danger d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
         </a>
       </div>
     </div>
@@ -180,8 +194,7 @@
               <i class="bi bi-bus-front"></i>
             </div>
             <h5>Rutas Activas</h5>
-            <h2 class="text-primary">24</h2>
-            <a href="#" class="btn btn-outline-primary mt-2">Gestionar</a>
+            <h2 class="text-primary" id="contador-rutas">0</h2>
           </div>
         </div>
 
@@ -191,8 +204,7 @@
               <i class="bi bi-signpost"></i>
             </div>
             <h5>Paradas Registradas</h5>
-            <h2 class="text-primary">156</h2>
-            <a href="#" class="btn btn-outline-primary mt-2">Gestionar</a>
+            <h2 class="text-primary" id="contador-paradas">0</h2>
           </div>
         </div>
 
@@ -202,13 +214,12 @@
               <i class="bi bi-people"></i>
             </div>
             <h5>Usuarios Registrados</h5>
-            <h2 class="text-primary">1,842</h2>
-            <a href="#" class="btn btn-outline-primary mt-2">Gestionar</a>
+            <h2 class="text-primary" id="contador-usuarios">0</h2>
           </div>
         </div>
       </div>
 
-      <div class="row mt-4">
+      <!-- <div class="row mt-4">
         <div class="col-md-8">
           <div class="card-admin card p-4">
             <h5><i class="bi bi-calendar-event"></i> Actividad Reciente</h5>
@@ -251,9 +262,9 @@
               </table>
             </div>
           </div>
-        </div>
+        </div> -->
 
-        <div class="col-md-4">
+      <!-- <div class="col-md-4">
           <div class="card-admin card p-4">
             <h5><i class="bi bi-exclamation-triangle"></i> Alertas</h5>
             <div class="alert alert-warning mt-3">
@@ -267,8 +278,8 @@
             </div>
             <div class="alert alert-success">Sistema operando normalmente</div>
           </div>
-        </div>
-      </div>
+        </div> -->
+      <!--  </div> -->
     </div>
     <script src="/js/rutas.js"></script>
     <script src="/js/login.js"></script>
@@ -284,6 +295,27 @@
           card.style.opacity = "1";
         });
       }, 300);
+    </script>
+    <script>
+      async function obtenerContadores() {
+        try {
+          const [rutas, paradas, usuarios] = await Promise.all([
+            fetch("/rutas/count").then((res) => res.json()),
+            fetch("/paradas/count").then((res) => res.json()),
+            fetch("/auth/count").then((res) => res.json()),
+          ]);
+
+          document.getElementById("contador-rutas").textContent = rutas.total;
+          document.getElementById("contador-paradas").textContent =
+            paradas.total;
+          document.getElementById("contador-usuarios").textContent =
+            usuarios.total;
+        } catch (error) {
+          console.error("Error al obtener contadores:", error);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", obtenerContadores);
     </script>
   </body>
 </html>

@@ -321,21 +321,31 @@
         <h4 class="text-center">Panel de Control</h4>
       </div>
       <div class="sidebar-menu">
-        <a href="" onclick="checkUserRole()">
+        <a href="" onclick="checkUserRole()" class="active">
           <i class="bi bi-speedometer2"></i> Dashboard
         </a>
-        <a href="" class="active" onclick="gestionarRutas(event)">
-          <i class="bi bi-bus-front"></i> Gestionar Rutas
-        </a>
-        <a href="" onclick="gestionarParadas(event)">
-          <i class="bi bi-signpost"></i> Gestionar Paradas
-        </a>
-        <a href="usuarios.html">
-          <i class="bi bi-people"></i> Gestionar Usuarios
-        </a>
 
-        <a href="#" onclick="logout(event)">
-          <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+        <!-- Ajuste en los botones de gestionar rutas y paradas -->
+        <button
+          id="gestionarRutasBtn"
+          class="btn btn-outline-primary d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-bus-front me-2"></i> Gestionar Rutas
+        </button>
+
+        <button
+          id="gestionarParadasBtn"
+          class="btn btn-outline-primary d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-signpost me-2"></i> Gestionar Paradas
+        </button>
+
+        <a
+          href="#"
+          onclick="logout(event)"
+          class="btn btn-outline-danger d-block w-100 text-start mt-2"
+        >
+          <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
         </a>
       </div>
     </div>

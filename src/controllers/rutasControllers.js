@@ -226,3 +226,13 @@ export const deleteRuta = async (req, res) => {
   await RutasModel.eliminarRuta(req.params.id);
   res.json({ message: "Ruta eliminada" });
 };
+
+export const contarRutasController = async (req, res) => {
+  try {
+    const count = await RutasModel.contarRutas();
+    res.json({ count });
+  } catch (error) {
+    console.error("Error al contar rutas:", error);
+    res.status(500).json({ message: "Error al contar rutas" });
+  }
+};

@@ -11,4 +11,6 @@ router.get("/:id", paradasController.obtenerParadaPorIdController);
 router.put("/:id", paradasController.actualizarParadaController);
 router.delete("/:id", paradasController.eliminarParadaController);
 
+router.get("/count", paradasController.contarParadasController);
+
 export default router;

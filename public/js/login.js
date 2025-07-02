@@ -1,6 +1,7 @@
-document
-  .getElementById("loginForm")
-  .addEventListener("submit", function (event) {
+// Verificar si el formulario existe antes de agregar el event listener
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", function (event) {
     event.preventDefault();
 
     const email = document.getElementById("loginEmail").value;
@@ -12,44 +13,57 @@ document
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-      credentials: "include", // 🔥 Permitir que el navegador acepte cookies
+      credentials: "include",
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) throw new Error("Credenciales incorrectas");
+        return response.json();
+      })
       .then((data) => {
-        if (data.message === "Login exitoso") {
+        if (data.success) {
           alert("Inicio de sesión exitoso");
           checkUserRole();
         } else {
-          alert(data.message || "Correo o contraseña incorrectos");
+          alert(data.message || "Error en el inicio de sesión");
         }
       })
       .catch((error) => {
         console.error("Error en la solicitud:", error);
-        alert("Hubo un error, por favor intente de nuevo");
+        alert(error.message || "Hubo un error, por favor intente de nuevo");
       });
   });
-
+}
 function checkUserRole() {
-  fetch("http://localhost:3000/auth/admin", {
+  fetch("http://localhost:3000/auth/verify-role", {
     method: "GET",
-    credentials: "include", // 🔥 enviar cookie
+    credentials: "include",
   })
     .then((response) => {
-      if (!response.ok) throw new Error("Acceso denegado");
-      return response.text(); // Si es HTML, como el dashboard
+      if (!response.ok) throw new Error("Error al verificar rol");
+      return response.json();
     })
-    .then((html) => {
-      // Redirigir manualmente o reemplazar contenido
-      window.location.href = "/auth/admin-dashboard"; // O mostrar directamente el contenido
+    .then((data) => {
+      if (data.success) {
+        console.log("Datos del usuario:", data);
+        if (data.role === "Administrador") {
+          window.location.href = "/auth/admin-dashboard";
+        } else if (data.role === "Visualizador") {
+          window.location.href = "/auth/viewer-dashboard";
+        } else {
+          throw new Error("Rol no reconocido");
+        }
+      } else {
+        throw new Error(data.message || "Error al verificar rol");
+      }
     })
     .catch((error) => {
       console.error("Error en verificación de rol:", error);
-      alert("No tienes permiso para acceder");
+      alert(error.message || "No tienes permiso para acceder");
       window.location.href = "/";
     });
 }
 function logout(event) {
-  if (event) event.preventDefault(); // Evita que el <a href="#"> recargue la página
+  event.preventDefault();
 
   fetch("http://localhost:3000/auth/logout", {
     method: "GET",
@@ -66,89 +80,97 @@ function logout(event) {
     });
 }
 
-function gestionarRutas(event) {
-  if (event) event.preventDefault(); // Evita que el <a href="#"> recargue la página
+// Función genérica para navegación protegida
+function navigateTo(route, requiredRole = null) {
+  return function (event) {
+    if (event) event.preventDefault();
 
-  fetch("http://localhost:3000/auth/gestionarRutas", {
-    method: "GET",
-    credentials: "include", // Enviar la cookie
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Acceso denegado");
-      return response.text(); // Si es HTML, como el dashboard
-    })
-    .then((html) => {
-      // Redirigir manualmente o reemplazar contenido
-      window.location.href = "/auth/gestionarRutas";
-    })
-    .catch((error) => {
-      console.error("Error en gestionar rutas:", error);
-      alert("No tienes permiso para acceder a gestionar rutas");
-      window.location.href = "/";
-    });
-}
-function adminDashboard(event) {
-  if (event) event.preventDefault(); // Evita que el <a href="#"> recargue la página
-
-  fetch("http://localhost:3000/auth/gestionarRutas", {
-    method: "GET",
-    credentials: "include", // Enviar la cookie
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Acceso denegado");
-      return response.text(); // Si es HTML, como el dashboard
-    })
-    .then((html) => {
-      // Redirigir manualmente o reemplazar contenido
-      window.location.href = "/auth/gestionarRutas";
-    })
-    .catch((error) => {
-      console.error("Error en gestionar rutas:", error);
-      alert("No tienes permiso para acceder a gestionar rutas");
-      window.location.href = "/";
-    });
+    // Primero verificar el rol si es necesario
+    if (requiredRole) {
+      fetch("http://localhost:3000/auth/verify-role", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok) throw new Error("Error al verificar rol");
+          return response.json();
+        })
+        .then((data) => {
+          if (data.success && data.role === requiredRole) {
+            window.location.href = `/auth/${route}`;
+          } else {
+            throw new Error(`Requiere rol ${requiredRole}`);
+          }
+        })
+        .catch((error) => {
+          console.error(`Error al acceder a ${route}:`, error);
+          alert(error.message || "No tienes permiso para acceder");
+          window.location.href = "/";
+        });
+    } else {
+      window.location.href = `/auth/${route}`;
+    }
+  };
 }
 
-function gestionarParadas(event) {
-  if (event) event.preventDefault(); // Evita que el <a href="#"> recargue la página
-
-  fetch("http://localhost:3000/auth/gestionarParadas", {
-    method: "GET",
-    credentials: "include", // Enviar la cookie
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Acceso denegado");
-      return response.text(); // Si es HTML, como el dashboard
-    })
-    .then((html) => {
-      // Redirigir manualmente o reemplazar contenido
-      window.location.href = "/auth/gestionarParadas";
-    })
-    .catch((error) => {
-      console.error("Error en gestionar rutas:", error);
-      alert("No tienes permiso para acceder a gestionar rutas");
-      window.location.href = "/";
+// Asignar funciones de navegación
+document.addEventListener("DOMContentLoaded", function () {
+  // Logout
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", function (event) {
+      event.preventDefault();
+      fetch("http://localhost:3000/auth/logout", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          alert(data.message);
+          window.location.href = "/";
+        })
+        .catch((error) => {
+          console.error("Error en logout:", error);
+          alert("Hubo un error al cerrar sesión");
+        });
     });
-}
+  }
 
-function gestionarUsuarios(event) {
-  if (event) event.preventDefault(); // Evita que el <a href="#"> recargue la página
+  // Navegación protegida
+  const adminDashboardBtn = document.getElementById("adminDashboardBtn");
+  if (adminDashboardBtn) {
+    adminDashboardBtn.addEventListener("click", navigateTo("admin-dashboard"));
+  }
 
-  fetch("http://localhost:3000/auth/gestionarUsuarios", {
-    method: "GET",
-    credentials: "include", // Enviar la cookie
-  })
-    .then((response) => {
-      if (!response.ok) throw new Error("Acceso denegado");
-      return response.text(); // Si es HTML, como el dashboard
-    })
-    .then((html) => {
-      // Redirigir manualmente o reemplazar contenido
-      window.location.href = "/auth/gestionarUsuarios";
-    })
-    .catch((error) => {
-      console.error("Error en gestionar rutas:", error);
-      alert("No tienes permiso para acceder a gestionar rutas");
-      window.location.href = "/";
-    });
-}
+  const viewerDashboardBtn = document.getElementById("viewerDashboardBtn");
+  if (viewerDashboardBtn) {
+    viewerDashboardBtn.addEventListener(
+      "click",
+      navigateTo("viewer-dashboard")
+    );
+  }
+
+  const gestionarRutasBtn = document.getElementById("gestionarRutasBtn");
+  if (gestionarRutasBtn) {
+    gestionarRutasBtn.addEventListener(
+      "click",
+      navigateTo("gestionarRutas", "Administrador")
+    );
+  }
+
+  const gestionarParadasBtn = document.getElementById("gestionarParadasBtn");
+  if (gestionarParadasBtn) {
+    gestionarParadasBtn.addEventListener(
+      "click",
+      navigateTo("gestionarParadas", "Administrador")
+    );
+  }
+
+  const gestionarUsuariosBtn = document.getElementById("gestionarUsuariosBtn");
+  if (gestionarUsuariosBtn) {
+    gestionarUsuariosBtn.addEventListener(
+      "click",
+      navigateTo("gestionarUsuarios", "Administrador")
+    );
+  }
+});
