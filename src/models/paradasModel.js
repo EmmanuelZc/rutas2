@@ -64,12 +64,14 @@ export const obtenerParadas = async () => {
   }
 };
 
-// Obtener una parada por ID con información de ubicación
 export const obtenerParadaPorId = async (id) => {
   const query = `
     SELECT 
       p.*, 
       u.calle, 
+      u.numero,
+      u.colonia,
+      u.codigo_postal,
       u.ciudad, 
       u.latitud, 
       u.longitud, 
@@ -171,7 +173,7 @@ export const actualizarUbicacion = async (
   }
 };
 
-const actualizarParada = async (
+export const actualizarParada = async (
   id,
   {
     nombre,
